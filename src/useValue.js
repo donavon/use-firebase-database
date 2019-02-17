@@ -1,18 +1,21 @@
 import {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
+  useState, useEffect, useRef, useMemo,
 } from 'react';
 
-const useValue = (database, path, eventType = 'value', initialValue = null) => {
+const useValue = (app, path, eventType = 'value', initialValue = null) => {
+  const database = useMemo(() => app.database(), [app]);
+
   const [value, setValue] = useState(initialValue);
 
   const savedRef = useRef();
 
-  const set = useCallback(newValue => savedRef.current.set(newValue), [
-    savedRef.current,
-  ]);
+  const set = (newValueOrFunction) => {
+    const newValue = typeof newValueOrFunction === 'function'
+      ? newValueOrFunction(value)
+      : newValueOrFunction;
+
+    return savedRef.current.set(newValue);
+  };
 
   useEffect(
     () => {

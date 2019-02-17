@@ -6,20 +6,22 @@ import useValue from '../src/useValue';
 afterEach(cleanup);
 
 const createMockDatabase = events => ({
-  ref: () => ({
-    on: (eventType, handler) => events.push(['on', eventType, handler]),
-    off: (eventType, handler) => events.push(['off', eventType, handler]),
-    set: value => events.push(['set', value]) && 'I promise',
+  database: () => ({
+    ref: () => ({
+      on: (eventType, handler) => events.push(['on', eventType, handler]),
+      off: (eventType, handler) => events.push(['off', eventType, handler]),
+      set: value => events.push(['set', value]) && 'I promise',
+    }),
   }),
 });
 
 describe('useValue', () => {
   test('`eventType` defaults to `value`', () => {
     const events = [];
-    const mockDatabase = createMockDatabase(events);
+    const mockApp = createMockDatabase(events);
 
     testHook(() => {
-      useValue(mockDatabase, '/a/b/c');
+      useValue(mockApp, '/a/b/c');
     });
 
     expect(events.length).toBe(1);
@@ -29,11 +31,11 @@ describe('useValue', () => {
 
   test('before an `on` event is fired, the return value is `null`', () => {
     const events = [];
-    const mockDatabase = createMockDatabase(events);
+    const mockApp = createMockDatabase(events);
 
     let value;
     testHook(() => {
-      [value] = useValue(mockDatabase, '/a/b/c');
+      [value] = useValue(mockApp, '/a/b/c');
     });
 
     expect(value).toBeNull();
@@ -44,7 +46,7 @@ describe('useValue', () => {
 
   test('after an `on` event is fired, the return value is determined from the `snapshot`', () => {
     const events = [];
-    const mockDatabase = createMockDatabase(events);
+    const mockApp = createMockDatabase(events);
 
     const snapshot = {
       val: () => 'foo',
@@ -52,7 +54,7 @@ describe('useValue', () => {
 
     let value;
     testHook(() => {
-      [value] = useValue(mockDatabase, '/a/b/c');
+      [value] = useValue(mockApp, '/a/b/c');
     });
 
     events[0][2](snapshot);
@@ -61,10 +63,10 @@ describe('useValue', () => {
 
   test('on unmount, `off` is called', () => {
     const events = [];
-    const mockDatabase = createMockDatabase(events);
+    const mockApp = createMockDatabase(events);
 
     const { unmount } = testHook(() => {
-      useValue(mockDatabase, '/a/b/c');
+      useValue(mockApp, '/a/b/c');
     });
 
     unmount();
@@ -76,16 +78,16 @@ describe('useValue', () => {
 
   test('if `database` changes, listeners will `off` and back `on`', () => {
     const events1 = [];
-    const mockDatabase1 = createMockDatabase(events1);
+    const mockApp1 = createMockDatabase(events1);
     const events2 = [];
-    const mockDatabase2 = createMockDatabase(events2);
+    const mockApp2 = createMockDatabase(events2);
 
-    let database = mockDatabase1;
+    let database = mockApp1;
     const { rerender } = testHook(() => {
       useValue(database, '/a/b/c');
     });
 
-    database = mockDatabase2;
+    database = mockApp2;
     rerender();
 
     expect(events2.length).toBe(1);
@@ -95,11 +97,11 @@ describe('useValue', () => {
 
   test('if `path` changes, listeners will `off` and back `on`', () => {
     const events = [];
-    const mockDatabase1 = createMockDatabase(events);
+    const mockApp1 = createMockDatabase(events);
 
     let path = '/a/b/c';
     const { rerender } = testHook(() => {
-      useValue(mockDatabase1, path);
+      useValue(mockApp1, path);
     });
 
     path = '/d/e/f';
@@ -112,11 +114,11 @@ describe('useValue', () => {
 
   test('if `eventType` changes, listeners will `off` and back `on`', () => {
     const events = [];
-    const mockDatabase1 = createMockDatabase(events);
+    const mockApp1 = createMockDatabase(events);
 
     let eventType = 'foo';
     const { rerender } = testHook(() => {
-      useValue(mockDatabase1, 'a/b/c', eventType);
+      useValue(mockApp1, 'a/b/c', eventType);
     });
 
     eventType = 'bar';
@@ -127,12 +129,12 @@ describe('useValue', () => {
     expect(events[2][1]).toBe('bar');
   });
 
-  test('if nothing changes, listeners not cycle', () => {
+  test('if nothing changes, listeners do not cycle', () => {
     const events = [];
-    const mockDatabase1 = createMockDatabase(events);
+    const mockApp1 = createMockDatabase(events);
 
     const { rerender } = testHook(() => {
-      useValue(mockDatabase1, 'a/b/c');
+      useValue(mockApp1, 'a/b/c');
     });
     rerender();
 
@@ -141,11 +143,11 @@ describe('useValue', () => {
 
   test('calling `setValue` will send the data to the cloud and return a Promise', () => {
     const events = [];
-    const mockDatabase1 = createMockDatabase(events);
+    const mockApp1 = createMockDatabase(events);
 
     let setValue;
     testHook(() => {
-      [, setValue] = useValue(mockDatabase1, 'a/b/c');
+      [, setValue] = useValue(mockApp1, 'a/b/c');
     });
 
     const promise = setValue('foo');
