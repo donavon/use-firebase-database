@@ -1,27 +1,25 @@
 import {
-  useState, useEffect, useRef, useMemo,
+  useState, useEffect, useMemo, useCallback,
 } from 'react';
 
 const useValue = (app, path, eventType = 'value', initialValue = null) => {
-  const database = useMemo(() => app.database(), [app]);
+  const ref = useMemo(() => app.database().ref(path), [app, path]);
 
   const [value, setValue] = useState(initialValue);
 
-  const savedRef = useRef();
+  const set = useCallback(
+    (newValueOrFunction) => {
+      const newValue = typeof newValueOrFunction === 'function'
+        ? newValueOrFunction(value)
+        : newValueOrFunction;
 
-  const set = (newValueOrFunction) => {
-    const newValue = typeof newValueOrFunction === 'function'
-      ? newValueOrFunction(value)
-      : newValueOrFunction;
-
-    return savedRef.current.set(newValue);
-  };
+      return ref.set(newValue);
+    },
+    [ref]
+  );
 
   useEffect(
     () => {
-      const ref = database.ref(path);
-      savedRef.current = ref;
-
       const handler = (snapshot) => {
         const val = snapshot.val();
         setValue(val);
@@ -32,7 +30,7 @@ const useValue = (app, path, eventType = 'value', initialValue = null) => {
         ref.off(eventType, handler);
       };
     },
-    [database, path, eventType]
+    [ref, eventType]
   );
 
   return [value, set];

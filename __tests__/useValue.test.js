@@ -141,6 +141,22 @@ describe('useValue', () => {
     expect(events.length).toBe(1);
   });
 
+  test('if nothing changes, return value is identical', () => {
+    const events = [];
+    const mockApp1 = createMockDatabase(events);
+
+    let arr;
+    const { rerender } = testHook(() => {
+      arr = useValue(mockApp1, 'a/b/c');
+    });
+    expect([...arr]).toEqual(arr);
+
+    const initialArr = arr;
+    rerender();
+
+    expect(initialArr).toEqual(arr);
+  });
+
   test('calling `setValue` will send the data to the cloud and return a Promise', () => {
     const events = [];
     const mockApp1 = createMockDatabase(events);
