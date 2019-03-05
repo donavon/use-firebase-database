@@ -27,7 +27,7 @@ Complete support is planned.
 For now, here is a basic setup. This will likely change in the future.
 
 ```js
-const [value, setValue] = useValue(database, path);
+const [value, setValue] = useValue(path);
 ```
 
 #### Parameters
@@ -36,8 +36,7 @@ Here are the parameters that you can use.
 
 | Parameter  | Description                              |
 | :--------- | :--------------------------------------- |
-| `database` | A Firebase database object.              |
-| `path`     | A string path to the value in Firestore. |
+| `path`     | A string path to the value in Firebase.  |
 
 #### Return
 
@@ -46,7 +45,7 @@ Here are the parameters that you can use.
 | Parameter  | Description                                                                                                                                                                                                                                                                       |
 | :--------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `value`    | The value from the Firebase database at `path`. If the path is invalid, or the data is not yet read from thje cloud, a `null` is returned.                                                                                                                                        |
-| `setValue` | A function that accepts a single patameter that is the data sent to Firebase. It returns a promise that resolves when the data is sacved in the cloud. `value` will immediately reflect the new value from calling `setValue` (i.e. no round trip required to see a new `value`). |
+| `setValue` | A function that accepts a single patameter that is the data sent to Firebase. It returns a promise that resolves when the data is saved in the cloud. `value` will immediately reflect the new value from calling `setValue` (i.e. no round trip required to see a new `value`). |
 
 #### Example
 

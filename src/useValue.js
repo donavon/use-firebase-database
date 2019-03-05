@@ -1,10 +1,14 @@
 import {
   useState, useEffect, useMemo, useCallback,
 } from 'react';
+import { useFirebaseApp as _useFirebaseApp } from '@use-firebase/app';
 
-const useValue = (app, path, eventType = 'value', initialValue = null) => {
+// const getArgs = (context, ...args) => (context ? [context, ...args] : args);
+
+const useValue = (path, eventType = 'value', initialValue = null, useFirebaseApp = _useFirebaseApp) => {
+  const app = useFirebaseApp();
+
   const ref = useMemo(() => app.database().ref(path), [app, path]);
-
   const [value, setValue] = useState(initialValue);
 
   const set = useCallback(

@@ -5,7 +5,7 @@ import useValue from '../src/useValue';
 
 afterEach(cleanup);
 
-const createMockDatabase = events => ({
+const createMockApp = events => ({
   database: () => ({
     ref: () => ({
       on: (eventType, handler) => events.push(['on', eventType, handler]),
@@ -18,10 +18,11 @@ const createMockDatabase = events => ({
 describe('useValue', () => {
   test('`eventType` defaults to `value`', () => {
     const events = [];
-    const mockApp = createMockDatabase(events);
+    const mockApp = createMockApp(events);
+    const useFirebaseApp = () => mockApp;
 
     testHook(() => {
-      useValue(mockApp, '/a/b/c');
+      useValue('/a/b/c', undefined, undefined, useFirebaseApp);
     });
 
     expect(events.length).toBe(1);
@@ -31,11 +32,12 @@ describe('useValue', () => {
 
   test('before an `on` event is fired, the return value is `null`', () => {
     const events = [];
-    const mockApp = createMockDatabase(events);
+    const mockApp = createMockApp(events);
+    const useFirebaseApp = () => mockApp;
 
     let value;
     testHook(() => {
-      [value] = useValue(mockApp, '/a/b/c');
+      [value] = useValue('/a/b/c', undefined, undefined, useFirebaseApp);
     });
 
     expect(value).toBeNull();
@@ -46,7 +48,8 @@ describe('useValue', () => {
 
   test('after an `on` event is fired, the return value is determined from the `snapshot`', () => {
     const events = [];
-    const mockApp = createMockDatabase(events);
+    const mockApp = createMockApp(events);
+    const useFirebaseApp = () => mockApp;
 
     const snapshot = {
       val: () => 'foo',
@@ -54,7 +57,7 @@ describe('useValue', () => {
 
     let value;
     testHook(() => {
-      [value] = useValue(mockApp, '/a/b/c');
+      [value] = useValue('/a/b/c', undefined, undefined, useFirebaseApp);
     });
 
     events[0][2](snapshot);
@@ -63,10 +66,11 @@ describe('useValue', () => {
 
   test('on unmount, `off` is called', () => {
     const events = [];
-    const mockApp = createMockDatabase(events);
+    const mockApp = createMockApp(events);
+    const useFirebaseApp = () => mockApp;
 
     const { unmount } = testHook(() => {
-      useValue(mockApp, '/a/b/c');
+      useValue('/a/b/c', undefined, undefined, useFirebaseApp);
     });
 
     unmount();
@@ -78,16 +82,18 @@ describe('useValue', () => {
 
   test('if `database` changes, listeners will `off` and back `on`', () => {
     const events1 = [];
-    const mockApp1 = createMockDatabase(events1);
+    const mockApp1 = createMockApp(events1);
+    const useFirebaseApp1 = () => mockApp1;
     const events2 = [];
-    const mockApp2 = createMockDatabase(events2);
+    const mockApp2 = createMockApp(events2);
+    const useFirebaseApp2 = () => mockApp2;
 
-    let database = mockApp1;
+    let useFirebaseApp = useFirebaseApp1;
     const { rerender } = testHook(() => {
-      useValue(database, '/a/b/c');
+      useValue('/a/b/c', undefined, undefined, useFirebaseApp);
     });
 
-    database = mockApp2;
+    useFirebaseApp = useFirebaseApp2;
     rerender();
 
     expect(events2.length).toBe(1);
@@ -97,11 +103,12 @@ describe('useValue', () => {
 
   test('if `path` changes, listeners will `off` and back `on`', () => {
     const events = [];
-    const mockApp1 = createMockDatabase(events);
+    const mockApp = createMockApp(events);
+    const useFirebaseApp = () => mockApp;
 
     let path = '/a/b/c';
     const { rerender } = testHook(() => {
-      useValue(mockApp1, path);
+      useValue(path, undefined, undefined, useFirebaseApp);
     });
 
     path = '/d/e/f';
@@ -114,11 +121,12 @@ describe('useValue', () => {
 
   test('if `eventType` changes, listeners will `off` and back `on`', () => {
     const events = [];
-    const mockApp1 = createMockDatabase(events);
+    const mockApp = createMockApp(events);
+    const useFirebaseApp = () => mockApp;
 
     let eventType = 'foo';
     const { rerender } = testHook(() => {
-      useValue(mockApp1, 'a/b/c', eventType);
+      useValue('a/b/c', eventType, undefined, useFirebaseApp);
     });
 
     eventType = 'bar';
@@ -131,10 +139,11 @@ describe('useValue', () => {
 
   test('if nothing changes, listeners do not cycle', () => {
     const events = [];
-    const mockApp1 = createMockDatabase(events);
+    const mockApp = createMockApp(events);
+    const useFirebaseApp = () => mockApp;
 
     const { rerender } = testHook(() => {
-      useValue(mockApp1, 'a/b/c');
+      useValue('a/b/c', undefined, undefined, useFirebaseApp);
     });
     rerender();
 
@@ -143,11 +152,12 @@ describe('useValue', () => {
 
   test('if nothing changes, return value is identical', () => {
     const events = [];
-    const mockApp1 = createMockDatabase(events);
+    const mockApp = createMockApp(events);
+    const useFirebaseApp = () => mockApp;
 
     let arr;
     const { rerender } = testHook(() => {
-      arr = useValue(mockApp1, 'a/b/c');
+      arr = useValue('a/b/c', undefined, undefined, useFirebaseApp);
     });
     expect([...arr]).toEqual(arr);
 
@@ -159,11 +169,12 @@ describe('useValue', () => {
 
   test('calling `setValue` will send the data to the cloud and return a Promise', () => {
     const events = [];
-    const mockApp1 = createMockDatabase(events);
+    const mockApp = createMockApp(events);
+    const useFirebaseApp = () => mockApp;
 
     let setValue;
     testHook(() => {
-      [, setValue] = useValue(mockApp1, 'a/b/c');
+      [, setValue] = useValue('a/b/c', undefined, undefined, useFirebaseApp);
     });
 
     const promise = setValue('foo');
