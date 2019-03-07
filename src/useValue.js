@@ -13,11 +13,11 @@ const useValue = (path, eventType = 'value', initialValue = null, useFirebaseApp
 
   const set = useCallback(
     (newValueOrFunction) => {
-      const newValue = typeof newValueOrFunction === 'function'
-        ? newValueOrFunction(value)
-        : newValueOrFunction;
+      const method = typeof newValueOrFunction === 'function'
+        ? 'transaction'
+        : 'set';
 
-      return ref.set(newValue);
+      return ref[method](newValueOrFunction);
     },
     [ref]
   );
